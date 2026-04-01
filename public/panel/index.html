@@ -1,0 +1,139 @@
+﻿<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Панель • Обзор</title>
+  <link rel="stylesheet" href="/panel/css/panel.css" />
+</head>
+<body data-page="overview">
+  <div class="app">
+    <aside class="side">
+      <div class="logo">more-stars <span>analytics</span></div>
+      <div class="menu-label">Навигация</div>
+      <nav class="menu">
+        <a class="active" href="/dashboard">Обзор</a>
+        <a href="/dashboard/revenue">Выручка</a>
+        <a href="/dashboard/users">Пользователи</a>
+        <a href="/dashboard/payments">Платежи</a>
+        <a href="/dashboard/ops">Операции</a>
+      </nav>
+    </aside>
+    <main class="main">
+      <div class="top">
+        <div>
+          <div class="title">Обзор бизнеса</div>
+          <div class="subtitle">Ключевые показатели, динамика, провайдеры, продукты</div>
+        </div>
+        <div class="controls">
+          <label>От <input id="from" type="date"></label>
+          <label>До <input id="to" type="date"></label>
+          <button id="refresh">Обновить</button>
+          <span class="status" id="status"></span>
+        </div>
+      </div>
+
+      <section class="grid-kpi">
+        <div class="card kpi-card row-clickable" data-kpi-key="revenue"><div class="k">Выручка</div><div class="v" id="kpi-revenue">-</div></div>
+        <div class="card kpi-card row-clickable" data-kpi-key="profit"><div class="k">Прибыль (оценка)</div><div class="v" id="kpi-profit">-</div></div>
+        <div class="card kpi-card row-clickable" data-kpi-key="orders_created"><div class="k">Создано заказов</div><div class="v" id="kpi-created">-</div></div>
+        <div class="card kpi-card row-clickable" data-kpi-key="orders_paid"><div class="k">Оплачено заказов</div><div class="v" id="kpi-paid">-</div></div>
+        <div class="card kpi-card row-clickable" data-kpi-key="payment_conversion"><div class="k">Конверсия оплаты</div><div class="v" id="kpi-conv">-</div></div>
+        <div class="card kpi-card row-clickable" data-kpi-key="repeat_rate"><div class="k">Доля повторных покупок</div><div class="v" id="kpi-repeat">-</div></div>
+      </section>
+      <div class="kpi-help">Нажми на любую карточку показателя, чтобы увидеть определение и формулу расчета.</div>
+
+      <section class="split-2">
+        <div class="card chart-wrap">
+          <div class="k">Выручка: текущий vs предыдущий период</div>
+          <svg id="revenue-chart" class="svg-chart"></svg>
+        </div>
+        <div class="card">
+          <div class="k">Лидеры периода</div>
+          <div class="v sm" id="top-provider">-</div>
+          <div class="tiny">Топ провайдер</div>
+          <div style="height:12px"></div>
+          <div class="v sm" id="top-product">-</div>
+          <div class="tiny">Топ продукт</div>
+          <div style="height:14px"></div>
+          <div class="k">Средний чек</div>
+          <div class="v sm" id="kpi-avg">-</div>
+          <div style="height:14px"></div>
+          <div class="k">Структура выручки по провайдерам</div>
+          <div id="providers-bars" class="bars"></div>
+        </div>
+      </section>
+
+      <section class="split-eq">
+        <div class="card">
+          <div class="k">Провайдеры</div>
+          <table>
+            <thead><tr><th>Провайдер</th><th>Создано</th><th>Оплачено</th><th>Выручка</th><th>Конверсия</th></tr></thead>
+            <tbody id="providers-table"></tbody>
+          </table>
+        </div>
+        <div class="card">
+          <div class="k">Продукты</div>
+          <table>
+            <thead><tr><th>Продукт</th><th>Оплачено</th><th>Выручка</th><th>Прибыль</th></tr></thead>
+            <tbody id="products-table"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="grid-kpi mini-kpi section-gap-md">
+        <div class="card"><div class="k">Доход на платящего пользователя</div><div class="v sm" id="ins-arppu">-</div></div>
+        <div class="card"><div class="k">Оценка ценности пользователя за 30 дней</div><div class="v sm" id="ins-ltv">-</div></div>
+        <div class="card"><div class="k">Оценка стоимости привлечения</div><div class="v sm" id="ins-cac">-</div></div>
+        <div class="card"><div class="k">Удержание за 7 дней</div><div class="v sm" id="ins-r7">-</div></div>
+        <div class="card"><div class="k">Удержание за 30 дней</div><div class="v sm" id="ins-r30">-</div></div>
+        <div class="card"><div class="k">Маржинальность</div><div class="v sm" id="ins-margin">-</div></div>
+      </section>
+
+      <section class="split-eq">
+        <div class="card">
+          <div class="k">Аномалии (Z-оценка >= 2)</div>
+          <table>
+            <thead><tr><th>Дата</th><th>Метрика</th><th>Значение</th><th>Z-оценка</th></tr></thead>
+            <tbody id="anomalies-table"></tbody>
+          </table>
+        </div>
+        <div class="card">
+          <div class="k">Тепловая карта по часам (оплаченные заказы)</div>
+          <div id="hourly-heatmap"></div>
+        </div>
+      </section>
+
+      <section class="split-eq">
+        <div class="card">
+          <div class="k">Дни (нажми на дату для детализации)</div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Дата</th><th>Создано</th><th>Оплачено</th><th>Выручка</th><th>Прибыль</th><th>Конверсия</th></tr></thead>
+              <tbody id="daily-drill-table"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card">
+          <div class="k">Детализация дня</div>
+          <div class="tiny" id="day-selected-label">Выбери день в таблице слева</div>
+          <section class="grid-kpi mini-kpi" style="margin-top: 8px;">
+            <div class="card"><div class="k">Выручка</div><div class="v sm" id="dd-revenue">-</div></div>
+            <div class="card"><div class="k">Себестоимость</div><div class="v sm" id="dd-cost">-</div></div>
+            <div class="card"><div class="k">Оценочная чистая прибыль</div><div class="v sm" id="dd-net-profit">-</div></div>
+            <div class="card"><div class="k">Оборот</div><div class="v sm" id="dd-turnover">-</div></div>
+          </section>
+          <div class="tiny" id="dd-formula" style="margin-top: 6px;">-</div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Пользователь</th><th>Оплач. заказов</th><th>Выручка</th><th>Себест.</th><th>Валовая</th></tr></thead>
+              <tbody id="dd-buyers-table"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script src="/panel/js/app.js"></script>
+</body>
+</html>
