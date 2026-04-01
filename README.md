@@ -1,80 +1,106 @@
 # more-stars-analytics
 
-Отдельный Ruby/Rails сервис аналитики для `more-stars`.
+Analytics service for `more-stars` built with Ruby on Rails.
 
-Сервис:
-- читает доменные данные из PostgreSQL (`orders/users/...`);
-- считает аналитические агрегаты в `analytics_*` таблицы;
-- отдает метрики по API;
-- имеет встроенную внутреннюю dashboard-панель.
+The project is a standalone back-office analytics layer:
+- reads raw business data from PostgreSQL (`orders`, `users`, `promos`, payments, referrals),
+- computes pre-aggregated analytics tables,
+- serves read-only API endpoints,
+- provides an internal dashboard UI.
 
-## Стек
-- Ruby 3.3.1
-- Rails 7.1 (API + static panel)
+## Why This Project
+
+`more-stars` core backend (FastAPI) remains source of truth for business flows and payments.  
+`more-stars-analytics` focuses on reporting, insights, and operational visibility without touching checkout logic.
+
+## Features
+
+- Daily business metrics (orders, paid conversion, revenue, cost, profit)
+- Product and provider breakdowns
+- Referral and promo analytics
+- Cohort and retention metrics
+- Data quality checks and job history
+- Dashboard pages:
+  - Overview
+  - Revenue
+  - Users
+  - Payments
+  - Operations
+- Password login + TOTP 2FA (Google Authenticator)
+
+## Tech Stack
+
+- Ruby `3.3.1`
+- Rails `7.1` (API mode + static dashboard pages)
 - PostgreSQL
 - Sidekiq + Redis
 - Docker / Docker Compose
+- RSpec
 
-## Что уже есть
-- Дневные метрики: выручка, себестоимость, прибыль, конверсии.
-- Разрезы по провайдерам и продуктам.
-- Реферальные и промо-метрики.
-- Когорты и базовые insights.
-- Data quality checks.
-- UI-панель:
-  - `/dashboard`
-  - `/dashboard/revenue`
-  - `/dashboard/users`
-  - `/dashboard/payments`
-  - `/dashboard/ops`
+## Architecture (MVP)
 
-## Авторизация (пароль + Google Authenticator 2FA)
-- `GET /login` — страница входа.
-- `POST /auth/login` — вход с `{ password, otp_code }`.
-- `POST /auth/logout` — выход.
-- Все `/dashboard*` и JSON API защищены сессией.
-- Опционально можно использовать `INTERNAL_API_TOKEN` для machine-to-machine запросов.
+1. FastAPI backend writes domain data to PostgreSQL.
+2. Analytics service reads core tables in read-only mode.
+3. Background jobs compute aggregates into `analytics_*` tables.
+4. API + dashboard read only aggregated data.
 
-## Быстрый старт (локально)
-1. Создать `.env`:
+Core aggregate tables:
+- `analytics_daily_metrics`
+- `analytics_provider_daily_metrics`
+- `analytics_product_daily_metrics`
+- `analytics_referral_daily_metrics`
+- `analytics_promo_daily_metrics`
+- `analytics_cohort_weekly_metrics`
+- `analytics_data_quality_issues`
+- `analytics_job_runs`
+
+## Security Model
+
+- Internal dashboard authentication via:
+  - password (`DASHBOARD_PASSWORD`)
+  - TOTP 2FA (`DASHBOARD_2FA_SECRET`)
+- Session-based auth for dashboard and JSON API.
+- Optional machine token auth (`INTERNAL_API_TOKEN`) for service-to-service access.
+
+## Local Development
+
+1. Prepare env:
 ```bash
 cp .env.example .env
 ```
 
-2. Заполнить минимум:
-- `DASHBOARD_PASSWORD`
-- `DASHBOARD_2FA_SECRET` (после генерации)
-
-3. Поднять контейнеры:
+2. Start containers:
 ```bash
 docker compose up -d --build
 ```
 
-4. Миграции:
+3. Run migrations:
 ```bash
 docker compose run --rm app bundle exec rails db:migrate
 ```
 
-5. Сгенерировать 2FA secret:
+4. Generate 2FA secret:
 ```bash
 docker compose run --rm app bundle exec rake auth:generate_2fa_secret
 ```
 
-6. Добавить secret в `.env` и перезапустить:
+5. Put generated `DASHBOARD_2FA_SECRET` into `.env`, then restart:
 ```bash
 docker compose up -d --build
 ```
 
-7. Проверить:
-- `http://localhost:3001/health`
+6. Open:
 - `http://localhost:3001/login`
+- `http://localhost:3001/dashboard`
 
-Важно:
-- для локальной разработки должен быть `SESSION_COOKIE_SECURE=false`;
-- для production под HTTPS — `SESSION_COOKIE_SECURE=true`.
+Important:
+- local HTTP: `SESSION_COOKIE_SECURE=false`
+- production HTTPS: `SESSION_COOKIE_SECURE=true`
 
-## Восстановление дампа core-БД
-Если нужен реальный датасет:
+## Restoring Real Data (Optional)
+
+If you have a core database dump:
+
 ```bash
 docker cp ./dumps/more_stars_core.dump more-stars-analytics-db-1:/tmp/more_stars_core.dump
 docker exec -i more-stars-analytics-db-1 pg_restore \
@@ -87,57 +113,107 @@ docker exec -i more-stars-analytics-db-1 pg_restore \
   /tmp/more_stars_core.dump
 ```
 
-После этого пересчитать агрегаты:
+Then run backfill:
 ```bash
 docker compose run --rm app bundle exec rake analytics:backfill_full FROM=2026-01-01 TO=2026-03-31
 ```
 
-## Основные rake-задачи
-- `analytics:backfill_daily FROM=YYYY-MM-DD TO=YYYY-MM-DD`
-- `analytics:backfill_full FROM=YYYY-MM-DD TO=YYYY-MM-DD`
-- `auth:generate_2fa_secret`
+## Production Deployment
 
-## Важные env-переменные
-Смотри полный список в `.env.example`.
+Server compose file:
+- `docker-compose.server.yml`
 
-Ключевые:
+Expected setup:
+- shared Docker network with core DB container (`more-stars-db`)
+- proper `DATABASE_URL` in `.env`
+- reverse proxy (Nginx) + HTTPS
+
+Typical commands:
+```bash
+docker compose -f docker-compose.server.yml up -d --build
+docker compose -f docker-compose.server.yml run --rm app bundle exec rails db:migrate
+docker compose -f docker-compose.server.yml run --rm app bundle exec rake analytics:backfill_full FROM=2026-01-01 TO=2026-03-31
+```
+
+## Configuration
+
+See `.env.example` for full list.
+
+Key variables:
 - `DATABASE_URL`
 - `REDIS_URL`
+- `SECRET_KEY_BASE`
 - `DASHBOARD_PASSWORD`
 - `DASHBOARD_2FA_SECRET`
 - `TOTP_ISSUER`
 - `SESSION_TTL_HOURS`
 - `SESSION_COOKIE_SECURE`
-- `GIFT_DEFAULT_COST_RUB` (fallback себестоимость для `gift`, по умолчанию `60`)
-- `INTERNAL_API_TOKEN` (опционально)
+- `GIFT_DEFAULT_COST_RUB`
+- `INTERNAL_API_TOKEN`
 
-## GitHub Actions
-В репозитории добавлены:
-- `CI`: `.github/workflows/ci.yml`
-  - bundle install
-  - `bundle exec rspec`
-- `Deploy`: `.github/workflows/deploy.yml`
-  - деплой по SSH на сервер
-  - `git pull`, `docker compose -f docker-compose.server.yml up -d --build`
-  - `rails db:migrate`
+## API Overview
 
-### Secrets для Deploy workflow
-Нужно добавить в GitHub Repository Secrets:
+- `GET /health`
+- `GET /metrics/daily`
+- `GET /metrics/summary`
+- `GET /metrics/providers`
+- `GET /metrics/products`
+- `GET /metrics/referrals`
+- `GET /metrics/promos`
+- `GET /metrics/cohorts`
+- `GET /metrics/funnel`
+- `GET /metrics/payments`
+- `GET /metrics/insights`
+- `GET /metrics/users`
+- `GET /metrics/users/details`
+- `GET /metrics/daily/details`
+- `GET /ops/jobs`
+- `GET /ops/data-quality`
+- `POST /ops/backfill`
+- `POST /ops/data-quality/run`
+- `GET /exports/metrics`
+
+## Dashboard Screenshots
+
+Add screenshots into:
+- `docs/assets/screenshots/overview.png`
+- `docs/assets/screenshots/revenue.png`
+- `docs/assets/screenshots/users.png`
+- `docs/assets/screenshots/payments.png`
+
+Then they will render here:
+
+![Overview](docs/assets/screenshots/overview.png)
+![Revenue](docs/assets/screenshots/revenue.png)
+![Users](docs/assets/screenshots/users.png)
+![Payments](docs/assets/screenshots/payments.png)
+
+## CI/CD
+
+GitHub Actions workflows:
+- `CI` → `.github/workflows/ci.yml`
+  - installs dependencies
+  - migrates test DB
+  - runs RSpec
+- `Deploy` → `.github/workflows/deploy.yml`
+  - manual (`workflow_dispatch`)
+  - deploys via SSH
+  - runs migrations on server
+
+Required repository secrets for Deploy:
 - `DEPLOY_HOST`
 - `DEPLOY_USER`
 - `DEPLOY_SSH_KEY`
-- `DEPLOY_PATH` (например `/opt/more-stars/more-stars-analytics`)
+- `DEPLOY_PATH`
 
-## Рекомендованный процесс публикации на GitHub
-1. Проверить локально:
-```bash
-docker compose up -d --build
-docker compose run --rm app bundle exec rails db:migrate
-docker compose run --rm app bundle exec rspec
-```
+## Roadmap
 
-2. Инициализировать/проверить git-репозиторий и сделать первый коммит.
-3. Запушить в GitHub.
-4. Включить Actions.
-5. Добавить deploy secrets.
-6. Запустить `Deploy` вручную через `workflow_dispatch`.
+- richer anomaly detection
+- alerting (Telegram/email)
+- role-based access and audit trail
+- scheduled report delivery
+- advanced funnel/event analytics
+
+## License
+
+Choose and add a license file (`MIT` recommended for pet-projects).
