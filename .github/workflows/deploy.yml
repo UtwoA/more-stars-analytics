@@ -9,11 +9,17 @@ concurrency:
 
 jobs:
   deploy:
-    if: ${{ secrets.DEPLOY_HOST != '' && secrets.DEPLOY_USER != '' && secrets.DEPLOY_SSH_KEY != '' && secrets.DEPLOY_PATH != '' }}
     runs-on: ubuntu-latest
     environment: production
 
     steps:
+      - name: Validate deploy secrets
+        run: |
+          test -n "${{ secrets.DEPLOY_HOST }}" || (echo "DEPLOY_HOST is empty" && exit 1)
+          test -n "${{ secrets.DEPLOY_USER }}" || (echo "DEPLOY_USER is empty" && exit 1)
+          test -n "${{ secrets.DEPLOY_SSH_KEY }}" || (echo "DEPLOY_SSH_KEY is empty" && exit 1)
+          test -n "${{ secrets.DEPLOY_PATH }}" || (echo "DEPLOY_PATH is empty" && exit 1)
+
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:

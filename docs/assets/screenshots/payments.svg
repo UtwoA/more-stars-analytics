@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#0d1117"/>
+  <rect x="40" y="40" width="1120" height="550" rx="20" fill="#21262d" stroke="#30363d"/>
+  <text x="80" y="120" fill="#f0f6fc" font-size="44" font-family="Montserrat, sans-serif">Payments</text>
+  <text x="80" y="170" fill="#8b949e" font-size="24" font-family="Montserrat, sans-serif">Attempts, events, success rate, failures</text>
+  <rect x="80" y="220" width="500" height="300" rx="12" fill="#161b22" stroke="#30363d"/>
+  <rect x="620" y="220" width="480" height="300" rx="12" fill="#161b22" stroke="#30363d"/>
+  <line x1="120" y1="470" x2="540" y2="470" stroke="#30363d"/>
+  <line x1="120" y1="410" x2="540" y2="410" stroke="#30363d"/>
+  <line x1="120" y1="350" x2="540" y2="350" stroke="#30363d"/>
+  <polyline points="140,460 220,420 300,390 380,420 460,370 520,350" fill="none" stroke="#22d3ee" stroke-width="4"/>
+</svg>

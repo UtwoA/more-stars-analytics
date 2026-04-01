@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="g1" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#0d1117"/>
+      <stop offset="100%" stop-color="#161b22"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#g1)"/>
+  <rect x="40" y="40" width="1120" height="550" rx="20" fill="#21262d" stroke="#30363d"/>
+  <text x="80" y="120" fill="#f0f6fc" font-size="44" font-family="Montserrat, sans-serif">Overview Dashboard</text>
+  <text x="80" y="170" fill="#8b949e" font-size="24" font-family="Montserrat, sans-serif">Revenue, conversion, providers, products</text>
+  <rect x="80" y="220" width="240" height="120" rx="12" fill="#161b22" stroke="#30363d"/>
+  <rect x="340" y="220" width="240" height="120" rx="12" fill="#161b22" stroke="#30363d"/>
+  <rect x="600" y="220" width="240" height="120" rx="12" fill="#161b22" stroke="#30363d"/>
+  <rect x="860" y="220" width="240" height="120" rx="12" fill="#161b22" stroke="#30363d"/>
+  <rect x="80" y="370" width="1020" height="160" rx="12" fill="#161b22" stroke="#30363d"/>
+  <polyline points="120,500 260,450 410,470 560,400 710,430 860,360 1020,390" fill="none" stroke="#06b6d4" stroke-width="4"/>
+</svg>
