@@ -1,45 +1,76 @@
 # more-stars-analytics
 
-Отдельный Ruby/Rails сервис аналитики для экосистемы `more-stars`.
+[![Ruby](https://img.shields.io/badge/Ruby-3.3.1-CC342D?logo=ruby&logoColor=white)](https://www.ruby-lang.org/)
+[![Rails](https://img.shields.io/badge/Rails-7.1-CB0000?logo=rubyonrails&logoColor=white)](https://rubyonrails.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-336791?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Sidekiq](https://img.shields.io/badge/Sidekiq-Background%20Jobs-B1003E)](https://sidekiq.org/)
+[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
+[![Panel](https://img.shields.io/badge/Panel-panel.more--stars.online-0EA5E9)](https://panel.more-stars.online)
 
-Проект добавляет полноценный back-office слой поверх существующего core backend:
-- читает доменные данные из PostgreSQL (`orders`, `users`, `promos`, payments, referrals),
-- считает аналитические агрегаты в `analytics_*` таблицы,
-- отдает read-only API для отчетов,
-- предоставляет web-панель с метриками и операционным контролем.
+Профессиональный аналитический сервис на Ruby/Rails для экосистемы **more-stars**.
 
-## Что внутри
+Отдельный runtime-контур, который:
+- не вмешивается в core checkout/payments логику;
+- считает предагрегированные витрины метрик;
+- отдает быстрый API и защищенную back-office панель.
 
-- Дневные бизнес-метрики: заказы, выручка, себестоимость, прибыль, конверсии
-- Разрезы по провайдерам и продуктам
-- Реферальная и промо-аналитика
-- Когорты и retention
-- Проверки качества данных + журнал джобов
-- Встроенная панель:
-  - `/dashboard`
-  - `/dashboard/revenue`
-  - `/dashboard/users`
-  - `/dashboard/payments`
-  - `/dashboard/ops`
-- Авторизация панели: пароль + 2FA (Google Authenticator, TOTP)
+![Обзор панели](docs/assets/screenshots/image.png)
 
-## Технологии
+## Что это за проект
 
-- Ruby `3.3.1`
-- Rails `7.1` (API mode + static dashboard pages)
-- PostgreSQL
-- Sidekiq + Redis
-- Docker / Docker Compose
-- RSpec
+`more-stars-analytics` — это выделенный back-office слой, который:
+- читает продуктовые и платежные данные из PostgreSQL,
+- пересчитывает готовые агрегаты в собственные `analytics_*` таблицы,
+- отдает быстрый read-only API,
+- предоставляет защищенную web-панель аналитики.
 
-## Архитектура
+Ключевой принцип:  
+**FastAPI backend остается source of truth**, а analytics сервис отвечает за отчетность, метрики и диагностику.
 
-1. `more-stars` (FastAPI) остается source of truth и пишет доменные данные в PostgreSQL.
-2. `more-stars-analytics` читает эти таблицы в read-only режиме.
-3. Sidekiq/ETL-джобы собирают агрегаты в `analytics_*`.
-4. API и UI читают уже готовые агрегаты (быстро и дешево для БД).
+## Почему это сильный проект
 
-Ключевые aggregate таблицы:
+- Четкое разделение ответственности между боевым контуром и аналитикой.
+- Предрасчет агрегатов вместо тяжелых raw-join запросов на каждый API вызов.
+- Идемпотентные backfill-процессы (upsert по уникальным ключам).
+- Закрытый доступ: пароль + TOTP 2FA + сессионная авторизация.
+- Production-ready запуск через Docker Compose + Nginx + HTTPS.
+- Базовый CI/CD через GitHub Actions и remote deploy по SSH.
+
+## Реализованный функционал
+
+### 1) Метрики бизнеса
+- дневные показатели заказов и оплат;
+- выручка, себестоимость, прибыль;
+- средний чек и конверсия оплаты;
+- повторные покупки и уникальные покупатели.
+
+### 2) Разрезы аналитики
+- по платежным провайдерам;
+- по типам продукта;
+- по реферальным метрикам;
+- по промокодам;
+- по когортам (retention/repeat dynamics).
+
+### 3) Операционный контур
+- история запусков аналитических джобов;
+- проверки качества данных;
+- ручной запуск backfill и проверок.
+
+### 4) Расширенная UI-панель
+- отдельные страницы: Overview / Revenue / Users / Payments / Ops;
+- drilldown по дням и пользователям;
+- графики, таблицы, сравнение периодов;
+- объяснение ключевых метрик в интерфейсе.
+
+### 5) Безопасность доступа
+- вход по паролю (`DASHBOARD_PASSWORD`);
+- 2FA через Google Authenticator (`DASHBOARD_2FA_SECRET`);
+- session auth для dashboard и API;
+- опциональный `INTERNAL_API_TOKEN` для machine-to-machine вызовов.
+
+## Архитектура данных
+
+Сервис пишет агрегаты в:
 - `analytics_daily_metrics`
 - `analytics_provider_daily_metrics`
 - `analytics_product_daily_metrics`
@@ -49,53 +80,52 @@
 - `analytics_data_quality_issues`
 - `analytics_job_runs`
 
-## Скриншоты панели
+### Важная бизнес-логика
 
-![Обзор](docs/assets/screenshots/overview.svg)
-![Выручка](docs/assets/screenshots/revenue.svg)
-![Пользователи](docs/assets/screenshots/users.svg)
-![Платежи](docs/assets/screenshots/payments.svg)
+- Статусы заказов маппятся через конфигурацию статусов.
+- Late updates учитываются за счет повторных rolling пересчетов.
+- Для `gift` поддержан fallback себестоимости (`GIFT_DEFAULT_COST_RUB`, по умолчанию `60`), чтобы не искажать прибыль.
 
-Можно заменить `.svg` на реальные `.png` и оставить те же пути.
+## API (основные endpoint’ы)
+
+- `GET /health`
+- `GET /metrics/daily`
+- `GET /metrics/daily/details`
+- `GET /metrics/summary`
+- `GET /metrics/providers`
+- `GET /metrics/products`
+- `GET /metrics/referrals`
+- `GET /metrics/promos`
+- `GET /metrics/cohorts`
+- `GET /metrics/funnel`
+- `GET /metrics/payments`
+- `GET /metrics/insights`
+- `GET /metrics/users`
+- `GET /metrics/users/details`
+- `GET /ops/jobs`
+- `GET /ops/data-quality`
+- `POST /ops/backfill`
+- `POST /ops/data-quality/run`
+- `GET /exports/metrics`
 
 ## Локальный запуск
 
-1. Подготовить env:
 ```bash
 cp .env.example .env
-```
-
-2. Запустить контейнеры:
-```bash
 docker compose up -d --build
-```
-
-3. Выполнить миграции:
-```bash
 docker compose run --rm app bundle exec rails db:migrate
-```
-
-4. Сгенерировать 2FA secret:
-```bash
 docker compose run --rm app bundle exec rake auth:generate_2fa_secret
-```
-
-5. Добавить `DASHBOARD_2FA_SECRET` в `.env` и перезапустить:
-```bash
 docker compose up -d --build
 ```
 
-6. Открыть:
+После этого:
 - `http://localhost:3001/login`
 - `http://localhost:3001/dashboard`
 
-Важно:
-- для локалки: `SESSION_COOKIE_SECURE=false`
-- для production под HTTPS: `SESSION_COOKIE_SECURE=true`
+## Подключение реальных данных
 
-## Подключение реальных данных (опционально)
+Если есть dump core базы:
 
-Если есть дамп core БД:
 ```bash
 docker cp ./dumps/more_stars_core.dump more-stars-analytics-db-1:/tmp/more_stars_core.dump
 docker exec -i more-stars-analytics-db-1 pg_restore \
@@ -108,33 +138,44 @@ docker exec -i more-stars-analytics-db-1 pg_restore \
   /tmp/more_stars_core.dump
 ```
 
-После этого пересчитать агрегаты:
+Полный пересчет:
+
 ```bash
 docker compose run --rm app bundle exec rake analytics:backfill_full FROM=2026-01-01 TO=2026-03-31
 ```
 
-## Production deployment
+## Продакшн-развертывание
 
 Используется `docker-compose.server.yml`.
 
-Типовой запуск на сервере:
+Типовой production flow:
+
 ```bash
 docker compose -f docker-compose.server.yml up -d --build
 docker compose -f docker-compose.server.yml run --rm app bundle exec rails db:migrate
 docker compose -f docker-compose.server.yml run --rm app bundle exec rake analytics:backfill_full FROM=2026-01-01 TO=2026-03-31
 ```
 
-## Безопасность
+Рекомендуемый фронт-доступ: Nginx reverse proxy + TLS (Let's Encrypt).
 
-- Вход в панель: `DASHBOARD_PASSWORD` + `DASHBOARD_2FA_SECRET`
-- Session-based auth для `/dashboard*` и JSON API
-- Опционально `INTERNAL_API_TOKEN` для machine-to-machine интеграций
+## CI/CD
 
-## Основные env-переменные
+### CI
+`.github/workflows/ci.yml`
+- поднимает PostgreSQL и Redis service-контейнеры;
+- выполняет миграции;
+- запускает RSpec.
 
-См. `.env.example`.
+### Deploy
+`.github/workflows/deploy.yml`
+- ручной запуск (`workflow_dispatch`);
+- проверка deploy secrets;
+- SSH deploy на сервер;
+- обновление контейнеров + миграции.
 
-Ключевые:
+## Конфигурация через ENV
+
+Ключевые переменные:
 - `DATABASE_URL`
 - `REDIS_URL`
 - `SECRET_KEY_BASE`
@@ -143,51 +184,36 @@ docker compose -f docker-compose.server.yml run --rm app bundle exec rake analyt
 - `TOTP_ISSUER`
 - `SESSION_TTL_HOURS`
 - `SESSION_COOKIE_SECURE`
-- `GIFT_DEFAULT_COST_RUB` (fallback себестоимость `gift`)
-- `INTERNAL_API_TOKEN`
+- `GIFT_DEFAULT_COST_RUB`
+- `INTERNAL_API_TOKEN` (опционально)
 
-## API (основные endpoint'ы)
+Полный список: `.env.example`.
 
-- `GET /health`
-- `GET /metrics/daily`
-- `GET /metrics/summary`
-- `GET /metrics/providers`
-- `GET /metrics/products`
-- `GET /metrics/referrals`
-- `GET /metrics/promos`
-- `GET /metrics/cohorts`
-- `GET /metrics/funnel`
-- `GET /metrics/payments`
-- `GET /metrics/insights`
-- `GET /metrics/users`
-- `GET /metrics/users/details`
-- `GET /metrics/daily/details`
-- `GET /ops/jobs`
-- `GET /ops/data-quality`
-- `POST /ops/backfill`
-- `POST /ops/data-quality/run`
-- `GET /exports/metrics`
+## Структура репозитория
 
-## CI/CD
-
-Workflow'ы:
-- `CI` (`.github/workflows/ci.yml`) — тесты и миграции
-- `Deploy` (`.github/workflows/deploy.yml`) — ручной деплой по SSH
-
-Secrets для Deploy:
-- `DEPLOY_HOST`
-- `DEPLOY_USER`
-- `DEPLOY_SSH_KEY`
-- `DEPLOY_PATH`
+```text
+app/
+  controllers/
+  jobs/
+  models/
+  services/
+config/
+db/migrate/
+public/panel/
+public/auth/
+lib/tasks/
+spec/
+.github/workflows/
+```
 
 ## Roadmap
 
-- алерты (Telegram/email)
-- расширенная anomaly detection
-- RBAC и audit trail
-- планировщик регулярных отчетов
-- углубленная funnel/event аналитика
+- расширенные алерты (Telegram/email);
+- RBAC и audit trail действий в панели;
+- планировщик регулярных отчетов;
+- углубленная event/funnel аналитика;
+- расширенный anomaly detection.
 
 ## License
 
-Рекомендуется добавить `MIT` как лицензию для публичного pet-проекта.
+Рекомендуемый вариант для публичного pet-проекта: MIT.
