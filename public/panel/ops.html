@@ -1,0 +1,68 @@
+﻿<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Панель • Операции</title>
+  <link rel="stylesheet" href="/panel/css/panel.css" />
+</head>
+<body data-page="ops">
+  <div class="app">
+    <aside class="side">
+      <div class="logo">more-stars <span>analytics</span></div>
+      <div class="menu-label">Навигация</div>
+      <nav class="menu">
+        <a href="/dashboard">Обзор</a>
+        <a href="/dashboard/revenue">Выручка</a>
+        <a href="/dashboard/users">Пользователи</a>
+        <a href="/dashboard/payments">Платежи</a>
+        <a class="active" href="/dashboard/ops">Операции</a>
+      </nav>
+    </aside>
+    <main class="main">
+      <div class="top">
+        <div>
+          <div class="title">Операции и надежность</div>
+          <div class="subtitle">Задачи, ошибки, качество данных</div>
+        </div>
+        <div class="controls">
+          <label>От <input id="from" type="date"></label>
+          <label>До <input id="to" type="date"></label>
+          <button id="refresh">Обновить</button>
+          <span class="status" id="status"></span>
+        </div>
+      </div>
+
+      <section class="grid-kpi">
+        <div class="card"><div class="k">Задачи в работе</div><div class="v" id="ops-running">-</div></div>
+        <div class="card"><div class="k">Ошибки задач за 24 часа</div><div class="v danger" id="ops-failed">-</div></div>
+        <div class="card"><div class="k">Открытые проблемы качества данных</div><div class="v warn" id="ops-open-dq">-</div></div>
+        <div class="card"><div class="k">Критичные проблемы качества данных</div><div class="v danger" id="ops-critical-dq">-</div></div>
+      </section>
+
+      <section class="split-eq">
+        <div class="card">
+          <div class="k">История джобов</div>
+          <table>
+            <thead><tr><th>Задача</th><th>Статус</th><th>Период</th><th>Завершено</th><th>Ошибка</th></tr></thead>
+            <tbody id="jobs-table"></tbody>
+          </table>
+        </div>
+        <div class="card">
+          <div class="k">Проблемы качества данных</div>
+          <table>
+            <thead><tr><th>Критичность</th><th>Код</th><th>Описание</th><th>Обнаружено</th></tr></thead>
+            <tbody id="dq-table"></tbody>
+          </table>
+          <div class="actions">
+            <button id="run-daily-backfill" class="alt">Пересчет днями</button>
+            <button id="run-backfill">Полный пересчет</button>
+            <button id="run-dq" class="alt">Проверка качества данных</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script src="/panel/js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,101 @@
+﻿<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Панель • Выручка</title>
+  <link rel="stylesheet" href="/panel/css/panel.css" />
+</head>
+<body data-page="revenue">
+  <div class="app">
+    <aside class="side">
+      <div class="logo">more-stars <span>analytics</span></div>
+      <div class="menu-label">Навигация</div>
+      <nav class="menu">
+        <a href="/dashboard">Обзор</a>
+        <a class="active" href="/dashboard/revenue">Выручка</a>
+        <a href="/dashboard/users">Пользователи</a>
+        <a href="/dashboard/payments">Платежи</a>
+        <a href="/dashboard/ops">Операции</a>
+      </nav>
+    </aside>
+    <main class="main">
+      <div class="top">
+        <div>
+          <div class="title">Выручка и прибыль</div>
+          <div class="subtitle">Финансовая динамика, рефералы и промо</div>
+        </div>
+        <div class="controls">
+          <label>От <input id="from" type="date"></label>
+          <label>До <input id="to" type="date"></label>
+          <button id="refresh">Обновить</button>
+          <span class="status" id="status"></span>
+        </div>
+      </div>
+
+      <section class="split-eq">
+        <div class="card chart-wrap">
+          <div class="k">Выручка: текущий vs предыдущий период</div>
+          <svg id="revenue-chart" class="svg-chart"></svg>
+        </div>
+        <div class="card chart-wrap">
+          <div class="k">Прибыль: текущий vs предыдущий период</div>
+          <svg id="profit-chart" class="svg-chart"></svg>
+        </div>
+      </section>
+
+      <section class="split-eq">
+        <div class="card">
+          <div class="k">Реферальные метрики</div>
+          <section class="grid-kpi mini-kpi">
+            <div class="card"><div class="k">Новых реферальных пользователей</div><div class="v sm" id="ref-kpi-new-users">-</div></div>
+            <div class="card"><div class="k">Оплаченных заказов</div><div class="v sm" id="ref-kpi-paid">-</div></div>
+            <div class="card"><div class="k">Выручка</div><div class="v sm" id="ref-kpi-revenue">-</div></div>
+            <div class="card"><div class="k">Прибыль</div><div class="v sm" id="ref-kpi-profit">-</div></div>
+          </section>
+          <div class="actions" style="margin-top: 6px;">
+            <button class="alt" id="ref-help-btn">Пояснения к метрикам</button>
+          </div>
+          <div class="kpi-help">Термины: «Платежные события» — все статусы и обновления платежки, «Платежные заказы» — уникальные заказы с транзакциями.</div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Дата</th>
+                  <th>Новых</th>
+                  <th>Создано</th>
+                  <th>Оплачено</th>
+                  <th>Неуспешно</th>
+                  <th>Платежные события</th>
+                  <th>Платежные заказы</th>
+                  <th>Конверсия создано→оплачено</th>
+                  <th>Конверсия платежные заказы→оплачено</th>
+                  <th>Покупатели</th>
+                  <th>Средний чек</th>
+                  <th>Выручка</th>
+                  <th>Бонусы</th>
+                  <th>Прибыль</th>
+                </tr>
+              </thead>
+              <tbody id="referrals-table"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card">
+          <div class="k">Промокоды</div>
+          <table>
+            <thead><tr><th>Код</th><th>Погашений</th><th>Оплачено</th><th>Скидка</th><th>Выручка</th><th>Прибыль</th></tr></thead>
+            <tbody id="promos-table"></tbody>
+          </table>
+          <div class="actions">
+            <a id="exp-daily" href="#" target="_blank"><button class="alt">Экспорт CSV: дни</button></a>
+            <a id="exp-referrals" href="#" target="_blank"><button class="alt">Экспорт CSV: рефералы</button></a>
+            <a id="exp-promos" href="#" target="_blank"><button class="alt">Экспорт CSV: промокоды</button></a>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script src="/panel/js/app.js"></script>
+</body>
+</html>

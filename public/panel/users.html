@@ -1,0 +1,102 @@
+﻿<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Панель • Пользователи</title>
+  <link rel="stylesheet" href="/panel/css/panel.css" />
+</head>
+<body data-page="users">
+  <div class="app">
+    <aside class="side">
+      <div class="logo">more-stars <span>analytics</span></div>
+      <div class="menu-label">Навигация</div>
+      <nav class="menu">
+        <a href="/dashboard">Обзор</a>
+        <a href="/dashboard/revenue">Выручка</a>
+        <a class="active" href="/dashboard/users">Пользователи</a>
+        <a href="/dashboard/payments">Платежи</a>
+        <a href="/dashboard/ops">Операции</a>
+      </nav>
+    </aside>
+    <main class="main">
+      <div class="top">
+        <div>
+          <div class="title">Пользователи и удержание</div>
+          <div class="subtitle">Когорты, повторные покупки, динамика покупателей</div>
+        </div>
+        <div class="controls">
+          <label>От <input id="from" type="date"></label>
+          <label>До <input id="to" type="date"></label>
+          <button id="refresh">Обновить</button>
+          <span class="status" id="status"></span>
+        </div>
+      </div>
+
+      <section class="grid-kpi">
+        <div class="card"><div class="k">Уникальные покупатели</div><div class="v" id="u-unique">-</div></div>
+        <div class="card"><div class="k">Повторные покупатели</div><div class="v" id="u-repeat">-</div></div>
+        <div class="card"><div class="k">Доля повторных покупок</div><div class="v" id="u-rate">-</div></div>
+      </section>
+
+      <section class="split-2">
+        <div class="card chart-wrap">
+          <div class="k">Уникальные покупатели: текущий и предыдущий период</div>
+          <svg id="buyers-chart" class="svg-chart"></svg>
+        </div>
+        <div class="card">
+          <div class="k">Тепловая карта когорт</div>
+          <div id="cohort-heatmap"></div>
+          <div class="actions">
+            <a id="exp-daily" href="#" target="_blank"><button class="alt">Экспорт CSV: дни</button></a>
+            <a id="exp-cohorts" href="#" target="_blank"><button class="alt">Экспорт CSV: когорты</button></a>
+          </div>
+        </div>
+      </section>
+
+      <section class="split-eq">
+        <div class="card" style="grid-column: 1 / -1;">
+          <div class="k">Когортная матрица (список)</div>
+          <table>
+            <thead><tr><th>Неделя когорты</th><th>Неделя жизни</th><th>Пользователи</th><th>Повторные покупатели</th><th>Удержание</th><th>Выручка за период</th></tr></thead>
+            <tbody id="cohorts-table"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="split-eq">
+        <div class="card">
+          <div class="k">Пользователи (кликни строку)</div>
+          <div class="controls" style="margin-top:8px;">
+            <label>Поиск <input id="users-search" type="text" placeholder="user_id или username"></label>
+            <button id="users-search-btn" class="alt">Найти</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Пользователь</th><th>Оплачено</th><th>Выручка</th><th>Валовая прибыль</th><th>Последняя оплата</th></tr></thead>
+              <tbody id="users-table"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card">
+          <div class="k">Карточка пользователя</div>
+          <div class="tiny" id="user-selected-label">Выбери пользователя в таблице слева</div>
+          <section class="grid-kpi mini-kpi" style="margin-top: 8px;">
+            <div class="card"><div class="k">Создано заказов</div><div class="v sm" id="ud-created">-</div></div>
+            <div class="card"><div class="k">Оплачено заказов</div><div class="v sm" id="ud-paid">-</div></div>
+            <div class="card"><div class="k">Выручка</div><div class="v sm" id="ud-revenue">-</div></div>
+            <div class="card"><div class="k">Валовая прибыль</div><div class="v sm" id="ud-profit">-</div></div>
+          </section>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Заказ</th><th>Статус</th><th>Продукт</th><th>Провайдер</th><th>Сумма</th><th>Себест.</th><th>Дата</th></tr></thead>
+              <tbody id="user-orders-table"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script src="/panel/js/app.js"></script>
+</body>
+</html>

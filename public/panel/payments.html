@@ -1,0 +1,77 @@
+﻿<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Панель • Платежи</title>
+  <link rel="stylesheet" href="/panel/css/panel.css" />
+</head>
+<body data-page="payments">
+  <div class="app">
+    <aside class="side">
+      <div class="logo">more-stars <span>analytics</span></div>
+      <div class="menu-label">Навигация</div>
+      <nav class="menu">
+        <a href="/dashboard">Обзор</a>
+        <a href="/dashboard/revenue">Выручка</a>
+        <a href="/dashboard/users">Пользователи</a>
+        <a class="active" href="/dashboard/payments">Платежи</a>
+        <a href="/dashboard/ops">Операции</a>
+      </nav>
+    </aside>
+    <main class="main">
+      <div class="top">
+        <div>
+          <div class="title">Платежи и воронка</div>
+          <div class="subtitle">Конверсия, уникальные транзакции, события платежки, разрез по провайдерам</div>
+        </div>
+        <div class="controls">
+          <label>От <input id="from" type="date"></label>
+          <label>До <input id="to" type="date"></label>
+          <button id="refresh">Обновить</button>
+          <span class="status" id="status"></span>
+        </div>
+      </div>
+
+      <section class="grid-kpi">
+        <div class="card"><div class="k">Создано заказов</div><div class="v" id="p-created">-</div></div>
+        <div class="card"><div class="k">Оплачено заказов</div><div class="v" id="p-paid">-</div></div>
+        <div class="card"><div class="k">Уникальных попыток оплаты</div><div class="v" id="p-attempts">-</div></div>
+        <div class="card"><div class="k">Событий платежки</div><div class="v" id="p-events">-</div></div>
+        <div class="card"><div class="k">Успешность попыток</div><div class="v" id="p-success-rate">-</div></div>
+        <div class="card"><div class="k">Доля оплаченных заказов</div><div class="v" id="p-paid-rate">-</div></div>
+        <div class="card"><div class="k">Выручка</div><div class="v" id="p-revenue">-</div></div>
+      </section>
+
+      <section class="split-eq">
+        <div class="card chart-wrap">
+          <div class="k">Оплаченные заказы по дням</div>
+          <svg id="payments-paid-chart" class="svg-chart"></svg>
+        </div>
+        <div class="card chart-wrap">
+          <div class="k">Воронка: создано → оплачено</div>
+          <svg id="funnel-chart" class="svg-chart"></svg>
+        </div>
+      </section>
+
+      <section class="split-eq">
+        <div class="card">
+          <div class="k">Провайдеры платежей</div>
+          <table>
+            <thead><tr><th>Провайдер</th><th>Попытки</th><th>События</th><th>Успешно</th><th>Неуспешно</th><th>Выручка</th></tr></thead>
+            <tbody id="payments-providers-table"></tbody>
+          </table>
+        </div>
+        <div class="card">
+          <div class="k">Причины неуспеха</div>
+          <table>
+            <thead><tr><th>Провайдер</th><th>Статус</th><th>Кол-во</th></tr></thead>
+            <tbody id="payments-failures-table"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script src="/panel/js/app.js"></script>
+</body>
+</html>
