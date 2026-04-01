@@ -1,0 +1,41 @@
+services:
+  redis:
+    image: redis:7
+    restart: unless-stopped
+    networks:
+      - more-stars-shared
+
+  app:
+    build: .
+    command: bundle exec puma -C config/puma.rb
+    env_file:
+      - .env
+    environment:
+      RAILS_ENV: production
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      PORT: 3000
+    ports:
+      - "3001:3000"
+    networks:
+      - more-stars-shared
+    depends_on:
+      - redis
+
+  sidekiq:
+    build: .
+    command: bundle exec sidekiq -C config/sidekiq.yml
+    env_file:
+      - .env
+    environment:
+      RAILS_ENV: production
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+    networks:
+      - more-stars-shared
+    depends_on:
+      - redis
+
+networks:
+  more-stars-shared:
+    external: true

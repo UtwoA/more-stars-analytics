@@ -1,0 +1,26 @@
+:concurrency: 5
+:queues:
+  - default
+  - metrics
+
+:schedule:
+  incremental_refresh_today:
+    class: IncrementalRefreshJob
+    cron: "*/15 * * * *"
+    queue: metrics
+  incremental_refresh_last_3_days:
+    class: IncrementalRefreshJob
+    args:
+      mode: last_3_days
+    cron: "0 * * * *"
+    queue: metrics
+  incremental_refresh_last_30_days:
+    class: IncrementalRefreshJob
+    args:
+      mode: last_30_days
+    cron: "0 1 * * *"
+    queue: metrics
+  data_quality_daily:
+    class: DataQualityCheckJob
+    cron: "15 1 * * *"
+    queue: metrics

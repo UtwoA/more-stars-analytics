@@ -1,0 +1,17 @@
+.bundle
+log/*
+tmp/*
+tmp/pids/*
+tmp/cache/*
+tmp/storage/*
+storage/*
+vendor/bundle
+.env
+.DS_Store
+coverage
+dumps/*.dump
+tmp.cookie
+*.log
+.idea/
+.vscode/
+node_modules/

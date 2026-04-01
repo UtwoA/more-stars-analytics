@@ -1,0 +1,17 @@
+jobs:
+  - class: IncrementalRefreshJob
+    cron: "*/15 * * * *"
+    description: "Refresh today's aggregates"
+  - class: IncrementalRefreshJob
+    cron: "0 * * * *"
+    args:
+      mode: last_3_days
+    description: "Refresh rolling 3-day window"
+  - class: IncrementalRefreshJob
+    cron: "0 1 * * *"
+    args:
+      mode: last_30_days
+    description: "Refresh rolling 30-day window"
+  - class: DataQualityCheckJob
+    cron: "15 1 * * *"
+    description: "Run daily data quality checks"
