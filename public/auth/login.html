@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Вход • more-stars analytics</title>
+  <style>
+    :root {
+      --bg-0: #0d1117;
+      --bg-1: #161b22;
+      --bg-2: #21262d;
+      --text: #c9d1d9;
+      --muted: #8b949e;
+      --accent: #06b6d4;
+      --border: #30363d;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      font-family: Montserrat, system-ui, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 0% -10%, rgba(6, 182, 212, 0.15), transparent 35%),
+        linear-gradient(140deg, var(--bg-0), var(--bg-1));
+    }
+    .card {
+      width: min(420px, calc(100vw - 28px));
+      background: linear-gradient(135deg, var(--bg-2), var(--bg-1));
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
+      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+    }
+    h1 { margin: 0 0 6px; font-size: 22px; }
+    p { margin: 0 0 14px; color: var(--muted); font-size: 13px; }
+    label {
+      display: grid;
+      gap: 6px;
+      margin-bottom: 10px;
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+    input {
+      width: 100%;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #0f1926;
+      color: var(--text);
+      padding: 10px 12px;
+      font-size: 14px;
+      outline: none;
+    }
+    input:focus {
+      border-color: rgba(6, 182, 212, 0.45);
+      box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.2);
+    }
+    button {
+      width: 100%;
+      margin-top: 4px;
+      border: 1px solid rgba(6, 182, 212, 0.3);
+      color: #def8ff;
+      background: linear-gradient(135deg, rgba(6, 182, 212, 0.24), rgba(13, 148, 136, 0.22));
+      border-radius: 10px;
+      padding: 10px 12px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+    .error {
+      margin-top: 10px;
+      color: #ef4444;
+      min-height: 18px;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Вход в аналитику</h1>
+    <p>Введите пароль и код из Google Authenticator.</p>
+    <label>Пароль
+      <input id="password" type="password" autocomplete="current-password" />
+    </label>
+    <label>Код 2FA
+      <input id="otp_code" type="text" inputmode="numeric" placeholder="123456" />
+    </label>
+    <button id="submit">Войти</button>
+    <div class="error" id="error"></div>
+  </div>
+  <script>
+    (function () {
+      async function login() {
+        const password = document.getElementById("password").value;
+        const otp_code = document.getElementById("otp_code").value;
+        const error = document.getElementById("error");
+        error.textContent = "";
+
+        const res = await fetch("/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ password, otp_code }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          error.textContent = data.error || "Ошибка входа";
+          return;
+        }
+        window.location.href = "/dashboard";
+      }
+
+      document.getElementById("submit").addEventListener("click", () => login().catch(() => {
+        document.getElementById("error").textContent = "Не удалось выполнить вход";
+      }));
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") login().catch(() => {
+          document.getElementById("error").textContent = "Не удалось выполнить вход";
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
